@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  redis:
+    image: "redis:alpine"
+    volumes:
+      - redis-data:/data
+    ports:
+      - 6379:6379
+  api:
+    build: "./Crawler-Back"
+    ports:
+      - 4000:4000
+    env_file:
+      - ./Crawler-Back/config/dev.env
+    depends_on:
+      - redis
+  manager:
+    build: "./Crawler-Manager"
+    ports:
+      - 5000:5000
+    env_file:
+      - ./Crawler-Manager/config/dev.env
+    depends_on:
+      - api
+  worker1:
+    build: "./Crawler-Worker"
+    ports:
+      - 8000:8000
+    env_file:
+      - ./Crawler-Worker/config/dev.env
+    depends_on:
+      - manager
+  worker2:
+    build: "./Crawler-Worker2"
+    ports:
+      - 8080:8080
+    env_file:
+      - ./Crawler-Worker2/config/dev.env
+    depends_on:
+      - manager
+  front:
+    build: "./Crawler-Front"
+    ports:
+      - 3000:3000
+    environment:
+      - REACT_APP_DB=http://localhost:4000
+    stdin_open: true
+    tty: true
+
+volumes:
+  redis-data:
+# docker-compose up --build
+# docker-compose down -v
+# if we dont have an image for a container we need to do the "build" part, if we do, we simply mention it
